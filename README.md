@@ -1,14 +1,13 @@
-Criar um , onde o jogador controla um personagem e precisa que se movimentam automaticamente.\n
-O foco é aplicar:\n
-Classes\n
-Herança\n
+Criar um , onde o jogador controla um personagem e precisa que se movimentam automaticamente.
+O foco é aplicar:
+Classes
+Herança
 Polimorfismo
 Encapsulamento
 Sprites e grupos
 Detecção de colisão no Pygame
 Loop de jogo e eventos
 Utilize o arquivo anexado como base para melhorias. O que deve ser implementado:
-
 
 Cada equipe deverá implementar:
 RoboLento → anda devagar em linha reta
