@@ -1,7 +1,7 @@
-Criar um , onde o jogador controla um personagem e precisa que se movimentam automaticamente.
-O foco é aplicar:
-Classes
-Herança
+Criar um , onde o jogador controla um personagem e precisa que se movimentam automaticamente.\n
+O foco é aplicar:\n
+Classes\n
+Herança\n
 Polimorfismo
 Encapsulamento
 Sprites e grupos
