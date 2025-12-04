@@ -1,105 +1,106 @@
 import pygame
 import random
+import sys
 
 pygame.init()
 
-LARGURA = 800
-ALTURA = 600
+LARGURA = 1280
+ALTURA = 720
 TELA = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Robot Defense - Template")
+pygame.display.set_caption("Robot Defense - First Person")
 
 FPS = 60
 clock = pygame.time.Clock()
 
-
-# CLASSE BASE
-class Entidade(pygame.sprite.Sprite):
-    def __init__(self, x, y, velocidade):
-        super().__init__()
-        self.velocidade = velocidade
-        self.image = pygame.Surface((40, 40))
-        self.rect = self.image.get_rect(center=(x, y))
-
-    def mover(self, dx, dy):
-        self.rect.x += dx
-        self.rect.y += dy
-
-
-# JOGADOR
-class Jogador(Entidade):
-    def __init__(self, x, y):
-        super().__init__(x, y, 5)
-        self.image.fill((0, 255, 0))  # verde
-        self.vida = 5
-
-    def update(self):
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_w]:
-            self.mover(0, -self.velocidade)
-        if keys[pygame.K_s]:
-            self.mover(0, self.velocidade)
-        if keys[pygame.K_a]:
-            self.mover(-self.velocidade, 0)
-        if keys[pygame.K_d]:
-            self.mover(self.velocidade, 0)
-
-        # limites de tela
-        self.rect.x = max(0, min(self.rect.x, LARGURA - 40))
-        self.rect.y = max(0, min(self.rect.y, ALTURA - 40))
-
-
-# TIRO (DO JOGADOR)
-class Tiro(Entidade):
-    def __init__(self, x, y):
-        super().__init__(x, y, 10)
-        self.image.fill((255, 255, 0))  # amarelo
-
-    def update(self):
-        self.rect.y -= self.velocidade
-        if self.rect.y < 0:
-            self.kill()
-
-
-# ROBO BASE
-class Robo(Entidade):
-    def __init__(self, x, y, velocidade):
-        super().__init__(x, y, velocidade)
-        self.image.fill((255, 0, 0))  # vermelho
-
-    def atualizar_posicao(self):
-        raise NotImplementedError
-
-
-# ROBO EXEMPLO — ZigueZague
-class RoboZigueZague(Robo):
-    def __init__(self, x, y):
-        super().__init__(x, y, velocidade=3)
-        self.direcao = 1
-
-    def atualizar_posicao(self):
-        self.rect.y += self.velocidade
-        self.rect.x += self.direcao * 3
-
-        if self.rect.x <= 0 or self.rect.x >= LARGURA - 40:
-            self.direcao *= -1
-
-    def update(self):
-        self.atualizar_posicao()
-        if self.rect.y > ALTURA:
-            self.kill()
-
-
-todos_sprites = pygame.sprite.Group()
-inimigos = pygame.sprite.Group()
-tiros = pygame.sprite.Group()
-
-jogador = Jogador(LARGURA // 2, ALTURA - 60)
-todos_sprites.add(jogador)
-
+# =========================
+# CONFIGURAÇÕES DO JOGO
+# =========================
+VIDA_NAVE = 5
 pontos = 0
+
+
+# =========================
+# CLASSE BASE (não usada diretamente)
+# =========================
+class Entidade(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+
+# =========================
+# JOGADOR - PRIMEIRA PESSOA
+# =========================
+class Jogador:
+    def __init__(self):
+        self.vida = VIDA_NAVE
+        # imagem da arma (temporária)
+        self.image = pygame.Surface((200, 200), pygame.SRCALPHA)
+        pygame.draw.rect(self.image, (0, 200, 255), (60, 60, 80, 140))  # arma placeholder
+
+        self.posicao = (LARGURA - 350, ALTURA - 260)  # posição fixa na tela
+
+    def desenhar(self, tela):
+        tela.blit(self.image, self.posicao)
+
+
+# =========================
+# TIRO
+# (RAYCAST SIMPLIFICADO)
+# =========================
+class Tiro:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+# =========================
+# ROBO (APPROACH / ESCALA)
+# =========================
+class Robo(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        # imagem base do robô (substituir depois)
+        self.base_image = pygame.Surface((60, 60))
+        self.base_image.fill((255, 0, 0))
+
+        self.scale = 0.2
+        self.image = pygame.transform.scale(self.base_image, (20, 20))
+
+        self.x = random.randint(500, 800)
+        self.y = random.randint(50, 150)
+
+        self.speed = random.uniform(0.005, 0.012)
+
+        self.rect = self.image.get_rect(center=(self.x, self.y))
+
+    def update(self):
+        self.scale += self.speed
+
+        tamanho = int(60 * self.scale)
+        self.image = pygame.transform.scale(self.base_image, (tamanho, tamanho))
+
+        self.rect = self.image.get_rect(center=(self.x, self.y))
+
+        # Se chegar na janela → dano
+        if tamanho >= 160:  # robô "encostou" na janela
+            global VIDA_NAVE
+            VIDA_NAVE -= 1
+            self.kill()
+
+
+# =========================
+# GRUPOS
+# =========================
+robos = pygame.sprite.Group()
+jogador = Jogador()
+
 spawn_timer = 0
 
+
+# =========================
+# LOOP PRINCIPAL
+# =========================
 rodando = True
 while rodando:
     clock.tick(FPS)
@@ -108,43 +109,50 @@ while rodando:
         if event.type == pygame.QUIT:
             rodando = False
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                tiro = Tiro(jogador.rect.centerx, jogador.rect.y)
-                todos_sprites.add(tiro)
-                tiros.add(tiro)
+        # TIRO
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mx, my = pygame.mouse.get_pos()
+            tiro = Tiro(mx, my)
 
-    # timer de entrada dos inimigos
+            # verificar se atingiu robô
+            for robo in list(robos):
+                if robo.rect.collidepoint(mx, my):
+                    robo.kill()
+                    pontos += 1
+
+    # Spawna robôs
     spawn_timer += 1
-    if spawn_timer > 40:
-        robo = RoboZigueZague(random.randint(40, LARGURA - 40), -40)
-        todos_sprites.add(robo)
-        inimigos.add(robo)
+    if spawn_timer >= 50:
+        novo = Robo()
+        robos.add(novo)
         spawn_timer = 0
 
-    # colisão tiro x robô
-    colisao = pygame.sprite.groupcollide(inimigos, tiros, True, True)
-    pontos += len(colisao)
+    robos.update()
 
-    # colisão robô x jogador
-    if pygame.sprite.spritecollide(jogador, inimigos, True):
-        jogador.vida -= 1
-        if jogador.vida <= 0:
-            print("GAME OVER!")
-            rodando = False
+    # GAME OVER
+    if VIDA_NAVE <= 0:
+        print("A NAVE FOI INVADIDA!")
+        rodando = False
 
-    # atualizar
-    todos_sprites.update()
+    # DESENHO
+    TELA.fill((5, 5, 20))
 
-    # desenhar
-    TELA.fill((20, 20, 20))
-    todos_sprites.draw(TELA)
+    # (coloque aqui a imagem da janela futuramente)
+    pygame.draw.rect(TELA, (40, 40, 60), (300, 50, 680, 350))
 
-    #Painel de pontos e vida
-    font = pygame.font.SysFont(None, 30)
-    texto = font.render(f"Vida: {jogador.vida}  |  Pontos: {pontos}", True, (255, 255, 255))
-    TELA.blit(texto, (10, 10))
+    robos.draw(TELA)
+    jogador.desenhar(TELA)
+
+    # mira
+    mx, my = pygame.mouse.get_pos()
+    pygame.draw.circle(TELA, (255, 255, 255), (mx, my), 8, 2)
+
+    # HUD
+    font = pygame.font.SysFont(None, 32)
+    hud = font.render(f"Vida da Nave: {VIDA_NAVE}  |  Pontos: {pontos}", True, (255, 255, 255))
+    TELA.blit(hud, (10, 10))
 
     pygame.display.flip()
 
 pygame.quit()
+sys.exit()
