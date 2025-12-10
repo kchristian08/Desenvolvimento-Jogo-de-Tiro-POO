@@ -1,13 +1,15 @@
 import pygame
 import random
+import math
 import sys
+from pygame.locals import *
 
 pygame.init()
 
 LARGURA = 1280
 ALTURA = 720
 TELA = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Robot Defense - First Person")
+pygame.display.set_caption("AstroWarfare")
 
 FPS = 60
 clock = pygame.time.Clock()

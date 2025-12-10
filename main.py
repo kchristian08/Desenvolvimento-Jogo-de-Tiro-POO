@@ -21,20 +21,13 @@ new_hover = pygame.image.load('sprites/botoes/new_hover.png').convert_alpha()
 new = pygame.transform.scale(new, (300, 150))
 new_hover = pygame.transform.scale(new_hover, (300, 150))
 
-continuar = pygame.image.load('sprites/botoes/continue.png').convert_alpha()
-continuar_hover = pygame.image.load('sprites/botoes/continue_hover.png').convert_alpha()
-continuar = pygame.transform.scale(continuar, (300, 150))
-continuar_hover = pygame.transform.scale(continuar_hover, (300, 150))
-
 exit_button = pygame.image.load('sprites/botoes/exit.png').convert_alpha()
 exit_button = pygame.transform.scale(exit_button, (300, 150))
 
 new_pos = (150, 250)
-continuar_pos = (150, 350)
-exit_button_pos = (150, 450)
+exit_button_pos = (150, 350)
 
 new_rect = new.get_rect(topleft=new_pos)
-continuar_rect = continuar.get_rect(topleft=continuar_pos)
 exit_rect = exit_button.get_rect(topleft=exit_button_pos)
 
 Rodando = True
@@ -48,9 +41,6 @@ while Rodando:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if new_rect.collidepoint(event.pos):
                 print("New clicado!")
-
-            elif continuar_rect.collidepoint(event.pos):
-                print("Continuar clicado!")
 
             elif exit_rect.collidepoint(event.pos):
                 print("Exit clicado!")
@@ -67,12 +57,6 @@ while Rodando:
         screen.blit(new_hover, new_pos)
     else:
         screen.blit(new, new_pos)
-
-    # CONTINUAR
-    if continuar_rect.collidepoint(mouse_pos):
-        screen.blit(continuar_hover, continuar_pos)
-    else:
-        screen.blit(continuar, continuar_pos)
 
     # EXIT (sem hover)
     screen.blit(exit_button, exit_button_pos)
