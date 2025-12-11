@@ -17,15 +17,16 @@ SPACE = pygame.image.load("sprites/background/space pixel art.png").convert()
 FUNDO = pygame.image.load("sprites/background/corredor pixel art.png").convert()
 MAO_ARMA = pygame.image.load("sprites/mao/arms.png").convert_alpha()
 ROBO_IMG = pygame.image.load("sprites/robos/Robo.png").convert_alpha()
-ROBO_IMG = pygame.transform.scale(ROBO_IMG, (50, 50))  # robôs menores
+ROBO_IMG = pygame.transform.scale(ROBO_IMG, (150, 150))
 ROBO_CHEFAO_IMG = pygame.image.load("sprites/robos/chefão.png").convert_alpha()
 EXPLOSAO_IMG = pygame.image.load("sprites/robos/kabum.png").convert_alpha()
+EXPLOSAO_IMG = pygame.transform.scale(EXPLOSAO_IMG, (150, 150))
 POWERUP_IMG = pygame.image.load("sprites/powerup/velocidade de tiro.png").convert_alpha()
 
 # Sons
-TIRO_SOM = pygame.mixer.Sound("")
-EXPLOSAO_SOM = pygame.mixer.Sound("")
-POWERUP_SOM = pygame.mixer.Sound("")
+TIRO_SOM = pygame.mixer.Sound("sons/tiro.mpeg")
+EXPLOSAO_SOM = pygame.mixer.Sound("sons/explosao.mpeg")
+POWERUP_SOM = pygame.mixer.Sound("sons/power up.mpeg")
 
 # Classes
 class Player(pygame.sprite.Sprite):
@@ -33,15 +34,15 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = MAO_ARMA
         # posição fixa no canto inferior direito
-        self.rect = self.image.get_rect(bottomright=(LARGURA - 50, ALTURA - 50))
-        self.health = 5
+        self.rect = self.image.get_rect(bottomright=(LARGURA - 70, ALTURA - 0))
+        self.health = 3
         self.score = 0
 
     def get_mira_pos(self):
         return pygame.mouse.get_pos()
 
     def update(self):
-        pass  # mão fixa, nada a atualizar
+        pass
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, start_pos, target_pos):
@@ -52,7 +53,7 @@ class Bullet(pygame.sprite.Sprite):
         dx = target_pos[0] - start_pos[0]
         dy = target_pos[1] - start_pos[1]
         distance = math.hypot(dx, dy)
-        self.speed = 15
+        self.speed = 30
         if distance == 0:
             distance = 1
         self.velocity = (dx / distance * self.speed, dy / distance * self.speed)
@@ -69,7 +70,7 @@ class Robo(pygame.sprite.Sprite):
         super().__init__()
         self.image = ROBO_IMG
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 2
+        self.speed = 3
 
     def update(self):
         self.rect.y += self.speed
@@ -82,12 +83,12 @@ class RoboLento(Robo):
 class RoboRapido(Robo):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.speed = 4
+        self.speed = 6
 
 class RoboZigueZague(Robo):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.speed = 2
+        self.speed = 3
         self.direction = 1
         self.counter = 0
 
@@ -102,18 +103,18 @@ class RoboCiclico(Robo):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.angle = 0
-        self.radius = 50
+        self.radius = 70
         self.center = (x, y)
 
     def update(self):
-        self.angle += 0.05
+        self.angle += 0.10
         self.rect.x = self.center[0] + math.cos(self.angle) * self.radius
         self.rect.y = self.center[1] + math.sin(self.angle) * self.radius + 1
 
 class RoboSaltador(Robo):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.jump_timer = random.randint(30, 60)
+        self.jump_timer = random.randint(60, 90)
 
     def update(self):
         self.jump_timer -= 1
@@ -208,7 +209,7 @@ while running:
 
     # Spawn de robôs
     spawn_timer += 1
-    if spawn_timer > 60:
+    if spawn_timer > 30:
         spawn_robo()
         spawn_timer = 0
 
@@ -218,7 +219,7 @@ while running:
     # Colisões
     hits = pygame.sprite.groupcollide(robos, bullets, True, True)
     for hit in hits:
-        player.score += 10
+        player.score += 1
         EXPLOSAO_SOM.play()
         explosao = Explosao(hit.rect.center)
         explosions.add(explosao)
