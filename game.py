@@ -291,7 +291,7 @@ while running:
     hits = pygame.sprite.groupcollide(robos, bullets, True, True)
     for hit in hits:
         # destruir robô normal
-        player.score += 5
+        player.score += 100
         EXPLOSAO_SOM.play()
 
         explosao = Explosao(hit.rect.center)
